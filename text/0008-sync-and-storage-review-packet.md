@@ -76,15 +76,12 @@ These problems are already limiting factors to product development. Recent examp
 *   The nascent support for containers in Firefox — partitioning of history visits into work, personal, _etc_. — has no clear path to integration with Sync.
 *   Few features are added to Sync itself: they need to be implemented three times (once for each major platform) and significant changes run into backward compatibility issues.
 *   New mobile and other experiences that want to integrate with FxA-stored data face significant data/sync costs:
-
-*   The NMX team forked a [separate simple read-only Android library](https://github.com/mozilla-mobile/FirefoxData-android), and [an unfinished iOS equivalent](https://github.com/liuche/FirefoxAccounts-ios), to pull data directly from the Sync server; Sync is complex, and extracting the existing Firefox code into separate libraries required expertise that was not present in the team. (We now have **five** separate FxA and Sync implementations.)
-*   Firefox Rocket doesn't reuse Firefox for Android's storage, and has no path forward to syncing.
-*   A Servo-based Android AR/VR browser is in need of data storage solutions, but we don't have a solution that we can give them.
-
-*   New mobile and other experiences that generate their own user data have no established patterns or guidelines for storing it, and no existing path toward making that data available to the broader Firefox ecosystem.
-
-*   The Lockbox project burnt a lot of early development cycles trying to decide what to use for backend storage — Sync, Kinto, or something else entirely. Their MVP currently does purely local storage.
-*   Project Hopscotch will store its collected user data in Google's [Firebase](https://firebase.google.com/), where it is siloed away and unable to be repurposed or shared with other Firefox experiences.
+    *   The NMX team forked a [separate simple read-only Android library](https://github.com/mozilla-mobile/FirefoxData-android), and [an unfinished iOS equivalent](https://github.com/liuche/FirefoxAccounts-ios), to pull data directly from the Sync server; Sync is complex, and extracting the existing Firefox code into separate libraries required expertise that was not present in the team. (We now have **five** separate FxA and Sync implementations.)
+    *   Firefox Rocket doesn't reuse Firefox for Android's storage, and has no path forward to syncing.
+    *   A Servo-based Android AR/VR browser is in need of data storage solutions, but we don't have a solution that we can give them.
+    *   New mobile and other experiences that generate their own user data have no established patterns or guidelines for storing it, and no existing path toward making that data available to the broader Firefox ecosystem.
+    *   The Lockbox project burnt a lot of early development cycles trying to decide what to use for backend storage — Sync, Kinto, or something else entirely. Their MVP currently does purely local storage.
+    *   Project Hopscotch will store its collected user data in Google's [Firebase](https://firebase.google.com/), where it is siloed away and unable to be repurposed or shared with other Firefox experiences.
 
 Stakeholders are:
 
