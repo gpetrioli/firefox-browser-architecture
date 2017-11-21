@@ -1,3 +1,8 @@
+---
+title: Roadmap Review: Sync and Storage
+layout: text
+---
+
 # Roadmap Review: Sync and Storage
 
 **Firefox should wow users with a smart personalized experience that's available seamlessly across services, apps, and devices. User data storage and syncing are vital to this vision.**
@@ -12,35 +17,20 @@ Is this roadmap proposal congruent with Firefox's strategy?
 
 ## Document status
 
-*   2017-11-20: Go-ahead given.
-*   2017-11-09: Review successfully completed. Follow-up questions underway.
-*   2017-11-03: Sufficient contributions received; sent to the Reviewer.
+* 2017-11-20: Go-ahead given.
+* 2017-11-09: Review successfully completed. Follow-up questions underway.
+* 2017-11-03: Sufficient contributions received; sent to the Reviewer.
 
 ## Roles
 
-<dl>
-
-<dt>Reviewer</dt>
-
-<dd>dcamp</dd>
-
-<dt>Chair</dt>
-
-<dd>jwalker</dd>
-
-<dt>Proposers</dt>
-
-<dd>
-
-*   rnewman, Browser Architecture
-*   rfkelly, Engineering Lead, Firefox Accounts
-*   markh, Sync engineering
-*   emily, Browser Architecture
-*   adavis, Product Manager, Sync & FxA
-
-</dd>
-
-</dl>
+* **Reviewer**: dcamp
+* **Chair**: jwalker
+* **Proposers**: 
+    * rnewman, Browser Architecture
+    * rfkelly, Engineering Lead, Firefox Accounts
+    * markh, Sync engineering
+    * emily, Browser Architecture
+    * adavis, Product Manager, Sync & FxA
 
 # Lay Summary
 
@@ -50,20 +40,20 @@ Desktop Firefox’s data is spread across [45+ different stores using 10+ differ
 
 In general, these stores and technologies:
 
-*   Were not designed for syncing, for reuse on other platforms, or for their data to be repurposed.
-*   Are not straightforward to extend, particularly those connected to Firefox Sync. Migrations are risky and time-consuming, and [downgrades are a huge concern](https://bugzilla.mozilla.org/show_bug.cgi?id=1404344).
-*   Are silos: it’s hard to connect them to each other to provide insights into data, which is the motivation for initiatives such as Activity Stream and Context Graph.
-*   Have no baseline of expected storage capabilities: documentation, full-text search, backup/import/export, basic versioning/migration, asynchrony, atomicity, caching, performance measurements and optimizations, _etc._ are all built from scratch, if they are built at all. Each store repeats the same fundamental mistakes and has its own quirks.
-*   Provide inconsistent support for security and privacy UI settings, leading to an [inconsistent and non-intuitive user experience](https://docs.google.com/document/d/1QJxHQ4GqziUGUiyaF5oP7-cA3hkyTamY33VvHY3vBrM).
-*   Are limited to a single platform. Desktop’s storage investments (_e.g._, Places, form history, session store), are hard to use elsewhere in the ecosystem, which reduces the value of those investments. No code or storage formats at all are shared between our iOS and NMX projects and desktop; even Fennec reimplements (for good reason, but at some cost) stores that exist in Gecko.
+* Were not designed for syncing, for reuse on other platforms, or for their data to be repurposed.
+* Are not straightforward to extend, particularly those connected to Firefox Sync. Migrations are risky and time-consuming, and [downgrades are a huge concern](https://bugzilla.mozilla.org/show_bug.cgi?id=1404344).
+* Are silos: it’s hard to connect them to each other to provide insights into data, which is the motivation for initiatives such as Activity Stream and Context Graph.
+* Have no baseline of expected storage capabilities: documentation, full-text search, backup/import/export, basic versioning/migration, asynchrony, atomicity, caching, performance measurements and optimizations, _etc._ are all built from scratch, if they are built at all. Each store repeats the same fundamental mistakes and has its own quirks.
+* Provide inconsistent support for security and privacy UI settings, leading to an [inconsistent and non-intuitive user experience](https://docs.google.com/document/d/1QJxHQ4GqziUGUiyaF5oP7-cA3hkyTamY33VvHY3vBrM).
+* Are limited to a single platform. Desktop’s storage investments (_e.g._, Places, form history, session store), are hard to use elsewhere in the ecosystem, which reduces the value of those investments. No code or storage formats at all are shared between our iOS and NMX projects and desktop; even Fennec reimplements (for good reason, but at some cost) stores that exist in Gecko.
 
 Firefox Sync itself is incomplete, in every sense:
 
-*   It doesn’t sync enough data types.
-*   Types that sync aren't complete, and/or lose data when synced.
-*   We have almost no consistency across platforms: each implementation syncs different data, in different ways, to different storage.
-*   Access control is an all-or-nothing affair; the auth tokens and encryption keys needed to read synced bookmarks will also grant read/write access to synced passwords.
-*   It is hard to improve the protocol itself to remedy these.
+* It doesn’t sync enough data types.
+* Types that sync aren't complete, and/or lose data when synced.
+* We have almost no consistency across platforms: each implementation syncs different data, in different ways, to different storage.
+* Access control is an all-or-nothing affair; the auth tokens and encryption keys needed to read synced bookmarks will also grant read/write access to synced passwords.
+* It is hard to improve the protocol itself to remedy these.
 
 Our current technologies are ill-suited to even our current sync and extensibility needs, let alone our predicted future needs.
 
@@ -71,25 +61,25 @@ Moreover, we have no off-the-shelf solution to adopt for new products or feature
 
 These problems are already limiting factors to product development. Recent examples:
 
-*   Form autofill is shipping desktop-only. Desktop-only sync took two months of work and an entire work week to build. Android will, at some point, blindly round-trip this data but not use it. There are no plans for iOS work.
-*   AS found it extremely challenging to add data to Places, and adding even one additional field to Firefox Sync took 9+ months to trickle through three platforms and negotiate backwards compatibility constraints. More ambitious data recording, particularly for speculative features/experiments, is considered unreasonable, time-wise, within the framework of Firefox Sync: time-to-market is too long.
-*   The nascent support for containers in Firefox — partitioning of history visits into work, personal, _etc_. — has no clear path to integration with Sync.
-*   Few features are added to Sync itself: they need to be implemented three times (once for each major platform) and significant changes run into backward compatibility issues.
-*   New mobile and other experiences that want to integrate with FxA-stored data face significant data/sync costs:
-    *   The NMX team forked a [separate simple read-only Android library](https://github.com/mozilla-mobile/FirefoxData-android), and [an unfinished iOS equivalent](https://github.com/liuche/FirefoxAccounts-ios), to pull data directly from the Sync server; Sync is complex, and extracting the existing Firefox code into separate libraries required expertise that was not present in the team. (We now have **five** separate FxA and Sync implementations.)
-    *   Firefox Rocket doesn't reuse Firefox for Android's storage, and has no path forward to syncing.
-    *   A Servo-based Android AR/VR browser is in need of data storage solutions, but we don't have a solution that we can give them.
-    *   New mobile and other experiences that generate their own user data have no established patterns or guidelines for storing it, and no existing path toward making that data available to the broader Firefox ecosystem.
-    *   The Lockbox project burnt a lot of early development cycles trying to decide what to use for backend storage — Sync, Kinto, or something else entirely. Their MVP currently does purely local storage.
-    *   Project Hopscotch will store its collected user data in Google's [Firebase](https://firebase.google.com/), where it is siloed away and unable to be repurposed or shared with other Firefox experiences.
+* Form autofill is shipping desktop-only. Desktop-only sync took two months of work and an entire work week to build. Android will, at some point, blindly round-trip this data but not use it. There are no plans for iOS work.
+* AS found it extremely challenging to add data to Places, and adding even one additional field to Firefox Sync took 9+ months to trickle through three platforms and negotiate backwards compatibility constraints. More ambitious data recording, particularly for speculative features/experiments, is considered unreasonable, time-wise, within the framework of Firefox Sync: time-to-market is too long.
+* The nascent support for containers in Firefox — partitioning of history visits into work, personal, _etc_. — has no clear path to integration with Sync.
+* Few features are added to Sync itself: they need to be implemented three times (once for each major platform) and significant changes run into backward compatibility issues.
+* New mobile and other experiences that want to integrate with FxA-stored data face significant data/sync costs:
+    * The NMX team forked a [separate simple read-only Android library](https://github.com/mozilla-mobile/FirefoxData-android), and [an unfinished iOS equivalent](https://github.com/liuche/FirefoxAccounts-ios), to pull data directly from the Sync server; Sync is complex, and extracting the existing Firefox code into separate libraries required expertise that was not present in the team. (We now have **five** separate FxA and Sync implementations.)
+    * Firefox Rocket doesn't reuse Firefox for Android's storage, and has no path forward to syncing.
+    * A Servo-based Android AR/VR browser is in need of data storage solutions, but we don't have a solution that we can give them.
+    * New mobile and other experiences that generate their own user data have no established patterns or guidelines for storing it, and no existing path toward making that data available to the broader Firefox ecosystem.
+    * The Lockbox project burnt a lot of early development cycles trying to decide what to use for backend storage — Sync, Kinto, or something else entirely. Their MVP currently does purely local storage.
+    * Project Hopscotch will store its collected user data in Google's [Firebase](https://firebase.google.com/), where it is siloed away and unable to be repurposed or shared with other Firefox experiences.
 
 Stakeholders are:
 
-*   Sync, both client and server, across all platforms. The Sync team is motivated to improve Sync and to build better systems, but is only staffed for incremental work, and has neither time to assist with more than a handful of one-off integrations (_e.g._, form autofill) nor significant leverage to direct the design of storage systems to reduce that workload.
-*   Activity Stream, across all platforms. AS is a significant short-term new consumer of user data, and a long-term generator of reusable data. Delivering a good AS experience requires capturing new data and going far beyond the current capabilities of Sync and Places, but the team lacks the leverage or expertise to make those changes.
-*   Existing storage teams, responsible for maintaining and implementing existing stores. Some stores lack owners. Most of these engineers don't directly experience the costs borne by the Sync team and engineers working on other platforms.
-*   Existing product teams. Product managers own features across platforms, but the implementations and capabilities of those features differ widely.
-*   New product teams and ET explorations wishing to use and collect user data. These teams must build storage and syncing from scratch. Extending and integrating with existing data is challenging.
+* Sync, both client and server, across all platforms. The Sync team is motivated to improve Sync and to build better systems, but is only staffed for incremental work, and has neither time to assist with more than a handful of one-off integrations (_e.g._, form autofill) nor significant leverage to direct the design of storage systems to reduce that workload.
+* Activity Stream, across all platforms. AS is a significant short-term new consumer of user data, and a long-term generator of reusable data. Delivering a good AS experience requires capturing new data and going far beyond the current capabilities of Sync and Places, but the team lacks the leverage or expertise to make those changes.
+* Existing storage teams, responsible for maintaining and implementing existing stores. Some stores lack owners. Most of these engineers don't directly experience the costs borne by the Sync team and engineers working on other platforms.
+* Existing product teams. Product managers own features across platforms, but the implementations and capabilities of those features differ widely.
+* New product teams and ET explorations wishing to use and collect user data. These teams must build storage and syncing from scratch. Extending and integrating with existing data is challenging.
 
 ## Brief
 
@@ -111,11 +101,11 @@ Getting this right unlocks the future of user data.
 
 Technical work will involve:
 
-*   Designing client-side APIs to encourage features to record data in a way that meets the needs of other components, including Sync.
-*   Designing one or more storage systems (including client, server, and documented protocol), supporting those APIs, that meets the captured requirements for sync and storage, including straightforward evolution of data.
-*   Building SDKs and other tooling to help new mobile experiences quickly integrate with existing user data, and store and share new user data of their own.
-*   Building client-side data pipelines to also meet the needs of application features. New storage systems must meet the performance requirements of the product.
-*   Exploring technologies and patterns that make it easier to connect UIs through to storage.
+* Designing client-side APIs to encourage features to record data in a way that meets the needs of other components, including Sync.
+* Designing one or more storage systems (including client, server, and documented protocol), supporting those APIs, that meets the captured requirements for sync and storage, including straightforward evolution of data.
+* Building SDKs and other tooling to help new mobile experiences quickly integrate with existing user data, and store and share new user data of their own.
+* Building client-side data pipelines to also meet the needs of application features. New storage systems must meet the performance requirements of the product.
+* Exploring technologies and patterns that make it easier to connect UIs through to storage.
 
 The Sync and BA teams have already begun exploring prototyping parts of this puzzle in an incremental way: in Q4, building a proof of concept as an example of an event observation and capturing infrastructure, materializing a view for querying. We expect this POC to inform our implementation plan.
 
@@ -135,9 +125,9 @@ In 3–9 months we should be in a position to evaluate a number of more concrete
 
 We can call out some representative product end states of this effort:
 
-*   New mobile apps can import a published library, with **shared code across platforms**, and use a standard FxA OAuth flow to get access to all or part of a user's synced data **without reinventing the wheel**.
-*   New product features and **experiments** can store new data through a simple, homogeneous API, and have that data automatically accessible from other Firefoxes and in mobile apps, **without writing significant new syncing code** and without worrying about version compatibility. Product managers should feel that they can confidently explore and iterate on product experiences.
-*   Users can alternate between release channels or move through a series of experiments using the same profile without losing data. **Most changes will be downgrade-safe**.
+* New mobile apps can import a published library, with **shared code across platforms**, and use a standard FxA OAuth flow to get access to all or part of a user's synced data **without reinventing the wheel**.
+* New product features and **experiments** can store new data through a simple, homogeneous API, and have that data automatically accessible from other Firefoxes and in mobile apps, **without writing significant new syncing code** and without worrying about version compatibility. Product managers should feel that they can confidently explore and iterate on product experiences.
+* Users can alternate between release channels or move through a series of experiments using the same profile without losing data. **Most changes will be downgrade-safe**.
 
 Effort subsequently invested in consolidation should gradually reduce ongoing cross-platform maintenance burden, which — after the initial expense — should free up engineering resources for more useful product work.
 
@@ -265,14 +255,14 @@ These additional efforts will likely be assessed and planned closer to the time;
 
 Vision statements
 
-*   [Ryan Kelly](https://docs.google.com/document/d/1MrXNcVzDDYyGSvud6CvVSoPGNyvpJvHGSDpRwIcalQc)
+* [Ryan Kelly](https://docs.google.com/document/d/1MrXNcVzDDYyGSvud6CvVSoPGNyvpJvHGSDpRwIcalQc)
 
 Blog posts
 
-*   [Thinking about Syncing, part 1](https://medium.com/@rnewman/thinking-about-syncing-part-1-timelines-7f758e2bd676) (2017)
-*   … [part 2](https://medium.com/@rnewman/thinking-about-syncing-part-2-timelines-and-change-90a0964f10f3)
-*   [Syncing and storage on three platforms](https://160.twinql.com/syncing-and-storage-on-three-platforms/) (2015)
-*   [Different kinds of storage](https://160.twinql.com/different-kinds-of-storage/) (user agent service) (2016)
+* [Thinking about Syncing, part 1](https://medium.com/@rnewman/thinking-about-syncing-part-1-timelines-7f758e2bd676) (2017)
+* … [part 2](https://medium.com/@rnewman/thinking-about-syncing-part-2-timelines-and-change-90a0964f10f3)
+* [Syncing and storage on three platforms](https://160.twinql.com/syncing-and-storage-on-three-platforms/) (2015)
+* [Different kinds of storage](https://160.twinql.com/different-kinds-of-storage/) (user agent service) (2016)
 
 ## Thanks
 
@@ -302,9 +292,9 @@ In short: by finding sets of properties that are beneficial for both the require
 
 This is something of a design question, but we have some idea of where we might go (we're initially proposing log-structured storage) so we can answer in brief. In short:
 
-*   Independent users and divisible data. There is little need to coordinate between encrypted storage for each user. Moreover, by making the log, entities, and other attributes meaningful concepts in the system, we can make the data for each user amenable to sharding along these axes. This allows us to scale horizontally.
-*   Mostly immutable data. Unlike a write-in-place system like Firefox Sync, which supports its constantly growing set of data by churning in place, we would like the majority of our storage work to be appends. The exceptions are well-defined operations that introduce barriers (like rollups, snapshots, or account deletion) and well-defined operations that rewrite parts of history (like Forget). Even with those exceptions, that's a healthier workload than we currently support in Firefox Sync, where a big pile of records is both constantly added to and constantly subject to random replacements — it makes the server simpler and the workload more predictable, and allows for cheaper long-term storage.
-*   Exploiting modern advances like push to reduce costs for common cases: improved responsiveness can eliminate a subset of conflict scenarios, which reduces load for both client and server.
+* Independent users and divisible data. There is little need to coordinate between encrypted storage for each user. Moreover, by making the log, entities, and other attributes meaningful concepts in the system, we can make the data for each user amenable to sharding along these axes. This allows us to scale horizontally.
+* Mostly immutable data. Unlike a write-in-place system like Firefox Sync, which supports its constantly growing set of data by churning in place, we would like the majority of our storage work to be appends. The exceptions are well-defined operations that introduce barriers (like rollups, snapshots, or account deletion) and well-defined operations that rewrite parts of history (like Forget). Even with those exceptions, that's a healthier workload than we currently support in Firefox Sync, where a big pile of records is both constantly added to and constantly subject to random replacements — it makes the server simpler and the workload more predictable, and allows for cheaper long-term storage.
+* Exploiting modern advances like push to reduce costs for common cases: improved responsiveness can eliminate a subset of conflict scenarios, which reduces load for both client and server.
 
 Questions from ckarlof (not a lot of time to answer these, so a little brief, but better than nothing!):
 
@@ -314,10 +304,10 @@ _I see some "representative product end states", but I feel these need to be mor
 
 In addition to the concrete definitions of success in each phase, we'll know the overall effort has been successful if:
 
-*   The organization displays a culture of holistic thinking around user data across the Firefox ecosystem.
-*   Product managers feel more empowered to drive experiences that rely on new, integrated user data.
-*   The baseline of storage capabilities is higher, with consequences for the consistency of Firefox's UX (see, e.g., Wennie's doc).
-*   The cost of integrating new syncable data is markedly lower than it is today.
+* The organization displays a culture of holistic thinking around user data across the Firefox ecosystem.
+* Product managers feel more empowered to drive experiences that rely on new, integrated user data.
+* The baseline of storage capabilities is higher, with consequences for the consistency of Firefox's UX (see, e.g., Wennie's doc).
+* The cost of integrating new syncable data is markedly lower than it is today.
 
 Figuring out how to concretely _measure_ our success is a task for after this review.
 
@@ -335,8 +325,8 @@ The proposal to use Rust is essentially an assertion of two things: that support
 
 There are other strategic/organizational opinions that lie beneath this document:
 
-*   That some organizational coordination of storage — including centralized reusable implementations — is valuable, both to individual features and to the organization as a whole.
-*   That totally separating syncing from storage doesn't work, and that pushing onto feature developers the burden of understanding syncing and other consumers, without tool support, is costly. Abstractions are needed.
+* That some organizational coordination of storage — including centralized reusable implementations — is valuable, both to individual features and to the organization as a whole.
+* That totally separating syncing from storage doesn't work, and that pushing onto feature developers the burden of understanding syncing and other consumers, without tool support, is costly. Abstractions are needed.
 
 **What would have to be true for your approach to be a winning one? What are your riskiest assumptions here?**
 
@@ -348,24 +338,24 @@ We'll break these down into more detailed work items and questions as we go abou
 
 From a product perspective, most (if not all) of the following would have to be true for this to be a success and to meet the needs of the engineering teams we’ve spoken to:
 
-*   We have a sufficiently accurate understanding of the needs of Mozilla engineering teams.
-*   We have a sufficiently accurate understanding of our users’ needs and problems.
-*   Teams have a desire/need to store new data.
-*   Teams have an increased need to more easily access existing stored data from other teams.
-*   We can successfully collaborate across departments.
-*   Users trust us with their data.
-*   Engineering teams trust us with their data.
-*   Existing storage is insufficiently easy to extend or scale.
-*   Engineers agree with the shortcomings of the current situation.
-*   Engineers would stop using _ad hoc_ solutions to create new products.
-*   Engineers are OK with having less control of their integration due to being limited to APIs
-*   There is enough of an overlap between all teams that would allow us to have solutions that fit all.
-*   New smaller mobile products won’t need to pull down all of the data locally since that can be a battery and storage drain.
-*   Mozilla wants to make personalized data-centric features (Firefox eco-system?)
-*   Users want a personalized browsing experience.
-*   In the case of making it ourselves, nobody has a working solution that we could use or fork which would allow us to achieve similar aspirations.
-*   We have the technical expertise to build a new storage system and cloud storage infrastructure.
-*   Our solution would provide increased flexibility to engineering teams in terms of adding new data types and changing existing ones.
-*   For new projects, that we are faster and easier to integrate than _ad hoc_ solutions, ideally enabling new projects to more rapidly pop-up across the company.
-*   We still want to encrypt all of our users data and work within those constraints.
-*   That we can satisfy the desire for experimentation within product teams and their current lack of data storage solutions that enable them to do this.
+* We have a sufficiently accurate understanding of the needs of Mozilla engineering teams.
+* We have a sufficiently accurate understanding of our users’ needs and problems.
+* Teams have a desire/need to store new data.
+* Teams have an increased need to more easily access existing stored data from other teams.
+* We can successfully collaborate across departments.
+* Users trust us with their data.
+* Engineering teams trust us with their data.
+* Existing storage is insufficiently easy to extend or scale.
+* Engineers agree with the shortcomings of the current situation.
+* Engineers would stop using _ad hoc_ solutions to create new products.
+* Engineers are OK with having less control of their integration due to being limited to APIs
+* There is enough of an overlap between all teams that would allow us to have solutions that fit all.
+* New smaller mobile products won’t need to pull down all of the data locally since that can be a battery and storage drain.
+* Mozilla wants to make personalized data-centric features (Firefox eco-system?)
+* Users want a personalized browsing experience.
+* In the case of making it ourselves, nobody has a working solution that we could use or fork which would allow us to achieve similar aspirations.
+* We have the technical expertise to build a new storage system and cloud storage infrastructure.
+* Our solution would provide increased flexibility to engineering teams in terms of adding new data types and changing existing ones.
+* For new projects, that we are faster and easier to integrate than _ad hoc_ solutions, ideally enabling new projects to more rapidly pop-up across the company.
+* We still want to encrypt all of our users data and work within those constraints.
+* That we can satisfy the desire for experimentation within product teams and their current lack of data storage solutions that enable them to do this.
